@@ -28,10 +28,10 @@ class GetProgrammeOutcomeSets(Resource):
 		po_sets = db.session.query(ProgrammeOutcomeSet)
     		result = []
     		for po_set in po_sets:
-        	di = programme_outcome_set_to_dict(po_set)
-        	di['po_count'] = po_set.programme_outcomes.count()
-        	di['can_delete'] = can_delete_programme_outcome_set(dbsession, po_set)
-        	result.append(di)
+        		di = programme_outcome_set_to_dict(po_set)
+        		di['po_count'] = po_set.programme_outcomes.count()
+        		di['can_delete'] = can_delete_programme_outcome_set(dbsession, po_set)
+        		result.append(di)
     	return {
         	'type': 'programme_outcome_set_list',
         	'result': result,}
