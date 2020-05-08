@@ -1,14 +1,9 @@
-from flask import Flask,request
+from flask import Flask,request,Response
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func
-
-
 from flask_restful import Resource, Api,reqparse
+
 from meta import metadata
-
-
-
-
 from utils import (
 	programme_outcome_set_to_dict,
 	programme_outcome_to_dict,
@@ -17,9 +12,9 @@ from utils import (
 	can_delete_programme_outcome,
 
 )
-
 from programme import ProgrammeOutcomeSet,ProgrammeOutcome
 
+from werkzeug.exceptions import BadRequest,HTTPException
 
 
 
@@ -48,13 +43,14 @@ class GetProgrammeOutcomeSets(Resource):
 
 class GetProgrammeOutcomeSetByName(Resource):
 	def get(self,name):
-		#errors = request.errors
 		po_set = ProgrammeOutcomeSet.by_name(db.session, name.strip())
-		#if po_set is None:
-		#    err_msg = "Programme outcome set ({}) not found".format(name)
-		#    errors.add("body", "name", err_msg)
-		#    errors.status = HTTPBadRequest.code
-		#    return
+		if po_set is None:
+			description= "Programme outcome set ({}) not found".format(name)
+			response =None
+			error=HTTPException(description,response)
+			error.code=BadRequest.code
+			print(error)
+			return {"status": error.code, "errors": [{    "description": error.description}]}
 
 		return {
 			'type': 'programme_outcome_set',
@@ -63,18 +59,19 @@ class GetProgrammeOutcomeSetByName(Resource):
 				'name': po_set.name,
 			}
 		}
-#curl example -> curl -X GET http://localhost:5000//ui/programme_outcome_manager/programme_outcome_set_id/Test
+#curl example -> curl -X GET http://localhost:5000//ui/programme_outcome_manager/programme_outcome_set_name/Test
+
 
 
 class GetProgrammeOutcomeSetById(Resource):
 	def get(self,po_set_id):
-		#errors = request.errors
 		po_set = ProgrammeOutcomeSet.by_id(db.session, po_set_id)
-		#if po_set is None:
-		#    err_msg = "Programme outcome set ({}) not found".format(name)
-		#    errors.add("body", "name", err_msg)
-		#    errors.status = HTTPBadRequest.code
-		#    return
+		if po_set is None:
+			description = "Programme outcome set ({}) not found".format(po_set_id)
+			response =None
+			error=HTTPException(description,response)
+			error.code=BadRequest.code
+			return {"status": error.code, "errors": [{    "description": error.description}]}
 
 		return {
 			'type': 'programme_outcome_set',
@@ -93,11 +90,14 @@ class AddProgrammeOutcomeSet(Resource):
 		data={}
 		data= request.json
 		name = data['name']
-		#po_set = ProgrammeOutcomeSet.by_name(name)
-		#if po_set is not None:
-			#errors.add("body", "name", "Name already in use")
-			#errors.status = HTTPBadRequest.code
-			#return
+		po_set = ProgrammeOutcomeSet.by_name(name)
+		if po_set is not None:
+			description="Name already in use"
+			response =None
+			error=HTTPException(description,response)
+			error.code=BadRequest.code
+			return {"status": error.code, "errors": [{    "description": error.description}]}
+
 		po_set = ProgrammeOutcomeSet()
 		po_set.name = name
 		db.session.add(po_set)
@@ -107,30 +107,33 @@ class AddProgrammeOutcomeSet(Resource):
 
 class EditProgrammeOutcomeSet(Resource):
 	def put(self,po_set_id):
-		#dbsession = request.dbsession
-		#errors = request.errors
-
-		#data = request.validated
 		data= request.json
 		po_set = ProgrammeOutcomeSet.by_id(db.session, po_set_id)
-		#if po_set is None:
-		#    err_msg = "Programme Outcome set ({}) not found".format(po_set_id)
-		#    errors.add("body", "name", err_msg)
-		#    errors.status = HTTPBadRequest.code
-		#    return
+		if po_set is None:
+			description="Programme Outcome set ({}) not found".format(po_set_id)
+			response =None
+			error=HTTPException(description,response)
+			error.code=BadRequest.code
+			return {"status": error.code, "errors": [{    "description": error.description}]}
+
 
 		name = data['name']
-		#if name == po_set.name:
-		#    err_msg = "Programme Outcome set ({}) already has name ({})"
-		#    errors.add("body", "name", err_msg.format(po_set_id, name))
-		#    errors.status = HTTPBadRequest.code
-		#    return
+		if name == po_set.name:
+			description="Programme Outcome set ({}) already has name ({})"
+			response =None
+			error=HTTPException(description,response)
+			error.code=BadRequest.code
+			return {"status": error.code, "errors": [{    "description": error.description}]}
 
-		#record = ProgrammeOutcomeSet.by_name(dbsession, name)
-		#if record is not None:
-		#    errors.add("body", "name", "Name ({}) already in use".format(name))
-		#    errors.status = HTTPBadRequest.code
-		#    return
+
+
+		record = ProgrammeOutcomeSet.by_name(db.session, name)
+		if record is not None:
+			description="Name ({}) already in use".format(name)
+			response =None
+			error=HTTPException(description,response)
+			error.code=BadRequest.code
+			return {"status": error.code, "errors": [{    "description": error.description}]}
 
 		po_set.name = name
 		db.session.commit()
@@ -139,21 +142,22 @@ class EditProgrammeOutcomeSet(Resource):
 
 class DeleteProgrammeOutcomeSet(Resource):
 	def delete(self,po_set_id):
-		#errors = request.errors
-
-		#data = request.validated
 		po_set = ProgrammeOutcomeSet.by_id(db.session, po_set_id)
-		#if po_set is None:
-		#	err_msg = "Programme Outcome set ({}) not found".format(po_set_id)
-		#	errors.add("path", "id", err_msg)
-		#	errors.status = HTTPBadRequest.code
-		#	return
+		if po_set is None:
+			description="Programme Outcome set ({}) not found".format(po_set_id)
+			response =None
+			error=HTTPException(description,response)
+			error.code=BadRequest.code
+			return {"status": error.code, "errors": [{    "description": error.description}]}
 
-		#if can_delete_programme_outcome_set(dbsession, po_set) is False:
-		#	err_msg = "Programme Outcome set ({}) in use".format(po_set_id)
-		#	errors.add("path", "id", err_msg)
-		#	errors.status = HTTPBadRequest.code
-		#	return
+
+		if can_delete_programme_outcome_set(db.session, po_set) is False:
+			description="Programme Outcome set ({}) in use".format(po_set_id)
+			response =None
+			error=HTTPException(description,response)
+			error.code=BadRequest.code
+			return {"status": error.code, "errors": [{    "description": error.description}]}
+
 
 		for po in po_set.programme_outcomes:
 			db.session.delete(po)
@@ -169,13 +173,14 @@ class DeleteProgrammeOutcomeSet(Resource):
 
 class GetProgrammeOutcome(Resource):
 	def get(self,po_id):
-		#errors = request.errors
 		po = ProgrammeOutcome.by_id(db.session, po_id)
-		#if po is None:
-			#error_msg = 'Programme Outcome ({}) does not exist'.format(po_id)
-			#errors.add('path', 'po_id', error_msg)
-			#errors.status = HTTPBadRequest.code
-			#return
+		if po is None:
+			description="Programme Outcome ({}) does not exist".format(po_id)
+			response =None
+			error=HTTPException(description,response)
+			error.code=BadRequest.code
+			return {"status": error.code, "errors": [{    "description": error.description}]}
+
 
 		return {
 			'type': 'programme_outcome',
@@ -190,14 +195,13 @@ class GetProgrammeOutcome(Resource):
 
 class GetProgrammeOutcomes(Resource):
 	def get(self,po_set_id):
-		#errors = request.errors
 		po_set = ProgrammeOutcomeSet.by_id(db.session, po_set_id)
-		#if po_set is None:
-		#	error_msg = (
-		#		'Programme Outcome Set ({}) does not exist'.format(po_set_id))
-		#	errors.add('path', 'po_set_id', error_msg)
-		#	errors.status = HTTPBadRequest.code
-		#	return
+		if po_set is None:
+			description="Programme Outcome Set ({}) does not exist".format(po_set_id)
+			response =None
+			error=HTTPException(description,response)
+			error.code=BadRequest.code
+			return {"status": error.code, "errors": [{    "description": error.description}]}
 
 		record = db.session.query(func.max(ProgrammeOutcome.number)).filter_by(
 			po_set_id=po_set_id).first()
@@ -225,31 +229,35 @@ class GetProgrammeOutcomes(Resource):
 
 class AddProgrammeOutcome(Resource):
 	def post(self,po_set_id):
-		#errors = request.errors
-		po_set = ProgrammeOutcomeSet.by_id(db.session, po_set_id)
-		#if po_set is None:
-		#	error_msg = (
-		#    	'Programme Outcome Set ({}) does not exist'.format(po_set_id))
-		#	errors.add('path', 'po_set_id', error_msg)
-		#	errors.status = HTTPBadRequest.code
-		#	return
 
-		#if can_add_programme_outcome(dbsession, po_set) is False:
-		#	error_msg = (
-		#    	"Programme Outcome Set ({}) in use. Can't add programme outcome")
-		#	errors.add('path', 'po_set_id', error_msg)
-		#	errors.status = HTTPBadRequest.code
-		#	return
+		po_set = ProgrammeOutcomeSet.by_id(db.session, po_set_id)
+		if po_set is None:
+			description="Programme Outcome Set ({}) does not exist".format(po_set_id)
+			response =None
+			error=HTTPException(description,response)
+			error.code=BadRequest.code
+			return {"status": error.code, "errors": [{    "description": error.description}]}
+
+
+		if can_add_programme_outcome(db.session, po_set) is False:
+			description="Programme Outcome Set ({}) in use. Can't add programme outcome"
+			response =None
+			error=HTTPException(description,response)
+			error.code=BadRequest.code
+			return {"status": error.code, "errors": [{    "description": error.description}]}
+
 		data={}
 		data = request.json
 		number = data['number']
 		record = db.session.query(ProgrammeOutcome.id).filter_by(
 			po_set_id=po_set_id, number=number).first()
-		#if record is not None:
-		#	error_msg = 'Programme Outcome with number ({}) already exists'
-		#	errors.add('body', 'number', error_msg.format(number))
-		#	errors.status = HTTPBadRequest.code
-		#	return
+		if record is not None:
+			description='Programme Outcome with number ({}) already exists'
+			response =None
+			error=HTTPException(description,response)
+			error.code=BadRequest.code
+			return {"status": error.code, "errors": [{    "description": error.description}]}
+
 
 		record = db.session.query(func.max(ProgrammeOutcome.number)).filter_by(
 			po_set_id=po_set_id).first()
@@ -258,11 +266,12 @@ class AddProgrammeOutcome(Resource):
 		else:
 			max_po = 0
 
-		#if number != max_po + 1:
-		#	err_msg = 'Programme Outcome numbers must be consecutive'
-		#	errors.add('body', 'number', err_msg)
-		#	errors.status = HTTPBadRequest.code
-		#	return
+		if number != max_po + 1:
+			description="Programme Outcome numbers must be consecutive"
+			response =None
+			error=HTTPException(description,response)
+			error.code=BadRequest.code
+			return {"status": error.code, "errors": [{    "description": error.description}]}
 
 		po = ProgrammeOutcome()
 		po.number = number
@@ -276,13 +285,14 @@ class AddProgrammeOutcome(Resource):
 
 class EditProgrammeOutcome(Resource):
 	def put(self,po_id):
-		#errors = request.errors
 		po = ProgrammeOutcome.by_id(db.session, po_id)
-		#if po is None:
-		#	error_msg = 'Programme Outcome ({}) does not exist'.format(po_id)
-		#	errors.add('path', 'po_set_id', error_msg)
-		#	errors.status = HTTPBadRequest.code
-		#	return
+		if po is None:
+			description='Programme Outcome ({}) does not exist'.format(po_id)
+			response =None
+			error=HTTPException(description,response)
+			error.code=BadRequest.code
+			return {"status": error.code, "errors": [{    "description": error.description}]}
+
 		data={}
 		data = request.json
 		po.title = data['title']
@@ -292,28 +302,34 @@ class EditProgrammeOutcome(Resource):
 
 class DeleteProgrammeOutcome(Resource):
 	def delete(self,po_id):
-		#errors = request.errors
 		po = ProgrammeOutcome.by_id(db.session, po_id)
-		#if po is None:
-		#	error_msg = 'Programme Outcome ({}) does not exist'.format(po_id)
-		#	errors.add('path', 'po_id', error_msg)
-		#	errors.status = HTTPBadRequest.code
-		#	return
+		if po is None:
+			description='Programme Outcome ({}) does not exist'.format(po_id)
+			response =None
+			error=HTTPException(description,response)
+			error.code=BadRequest.code
+			return {"status": error.code, "errors": [{    "description": error.description}]}
+
 
 		record = db.session.query(func.max(ProgrammeOutcome.number)).filter_by(
 			po_set_id=po.po_set_id).first()
 		max_po = record[0]
-		#if po.number != max_po:
-		#	error_msg = 'Only last Programme Outcome can be deleted'
-		#	errors.add('path', 'po_id', error_msg)
-		#	errors.status = HTTPBadRequest.code
-		#	return
+		if po.number != max_po:
+			description='Only last Programme Outcome can be deleted'
+			response =None
+			error=HTTPException(description,response)
+			error.code=BadRequest.code
+			return {"status": error.code, "errors": [{    "description": error.description}]}
 
-		#if can_delete_programme_outcome(db.session, po) is False:
-		#	err_msg = "Programme Outcome ({}) in use".format(po_id)
-		#	errors.add("path", "id", err_msg)
-		#	errors.status = HTTPBadRequest.code
-		#	return
+
+
+		if can_delete_programme_outcome(db.session, po) is False:
+			description="Programme Outcome ({}) in use".format(po_id)
+			response =None
+			error=HTTPException(description,response)
+			error.code=BadRequest.code
+			return {"status": error.code, "errors": [{    "description": error.description}]}
+
 
 		db.session.delete(po)
 		db.session.commit()
