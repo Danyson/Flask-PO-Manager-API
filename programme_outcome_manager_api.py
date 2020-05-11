@@ -1,20 +1,20 @@
-from flask import Flask,request,Response
+from flask import Flask ,request
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func
-from flask_restful import Resource, Api,reqparse
+from flask_restful import Resource, Api
+from werkzeug.exceptions import BadRequest, HTTPException
 
 from meta import metadata
 from utils import (
-	programme_outcome_set_to_dict,
+        programme_outcome_set_to_dict,
 	programme_outcome_to_dict,
 	can_add_programme_outcome,
 	can_delete_programme_outcome_set,
 	can_delete_programme_outcome,
-
 )
-from programme import ProgrammeOutcomeSet,ProgrammeOutcome
 
-from werkzeug.exceptions import BadRequest,HTTPException
+from programme import ProgrammeOutcomeSet, ProgrammeOutcome
+
 
 
 
@@ -97,7 +97,6 @@ class AddProgrammeOutcomeSet(Resource):
 			error=HTTPException(description,response)
 			error.code=BadRequest.code
 			return {"status": error.code, "errors": [{    "description": error.description}]}
-
 		po_set = ProgrammeOutcomeSet()
 		po_set.name = name
 		db.session.add(po_set)
