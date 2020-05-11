@@ -1,12 +1,15 @@
 # Flask-PO-Manager-API
 
-On Linux
+On Linux:
+
 python3 -m venv venv
 
  On Windows:
+ 
  py -3 -m venv venv
 
- On Linux
+ On Linux:
+ 
  . venv/bin/activate
 
  On Windows:
