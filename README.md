@@ -1,20 +1,23 @@
 # Flask-PO-Manager-API
 
-On Linux:
+# create virtual environment
+# On Linux:
 
 python3 -m venv venv
 
- On Windows:
+# On Windows:
  
  py -3 -m venv venv
 
- On Linux:
+# On Linux:
  
  . venv/bin/activate
 
- On Windows:
+# On Windows:
 
  venv\Scripts\activate
+
+# Python Packages
 
  pip install Flask
 
