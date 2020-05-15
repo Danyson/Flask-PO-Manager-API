@@ -1,4 +1,5 @@
-from flask import Flask ,request
+from flask import Flask ,request ,jsonify
+
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func
 from flask_restful import Resource, Api
@@ -43,10 +44,12 @@ class GetProgrammeOutcomeSetByName(Resource):
             error = HTTPException(description,response)
             error.code = BadRequest.code
             print(error)
-            return {
+            exception = {
                     "status": error.code,
                     "errors": [{"description": error.description}]
                     }
+            exception_in_json = jsonify(exception)
+            return exception_in_json
 
         return {
                  'type': 'programme_outcome_set',
@@ -65,10 +68,12 @@ class GetProgrammeOutcomeSetById(Resource):
             response = None
             error = HTTPException(description,response)
             error.code = BadRequest.code
-            return {
+            exception = {
                     "status": error.code,
                     "errors": [{"description": error.description}]
                     }
+            exception_in_json = jsonify(exception)
+            return exception_in_json
 
         return {
                 'type': 'programme_outcome_set',
@@ -91,10 +96,12 @@ class AddProgrammeOutcomeSet(Resource):
             response = None
             error = HTTPException(description,response)
             error.code = BadRequest.code
-            return {
+            exception = {
                     "status": error.code,
                     "errors": [{"description": error.description}]
                     }
+            exception_in_json = jsonify(exception)
+            return exception_in_json
         po_set = ProgrammeOutcomeSet()
         po_set.name = name
         db.session.add(po_set)
@@ -110,10 +117,12 @@ class EditProgrammeOutcomeSet(Resource):
             response = None
             error = HTTPException(description,response)
             error.code = BadRequest.code
-            return {
+            exception = {
                     "status": error.code,
                     "errors": [{"description": error.description}]
                     }
+            exception_in_json = jsonify(exception)
+            return exception_in_json
 
 
         name = data['name']
@@ -122,10 +131,12 @@ class EditProgrammeOutcomeSet(Resource):
             response = None
             error = HTTPException(description,response)
             error.code = BadRequest.code
-            return {
+            exception = {
                     "status": error.code,
                     "errors": [{"description": error.description}]
                     }
+            exception_in_json = jsonify(exception)
+            return exception_in_json
 
         record = ProgrammeOutcomeSet.by_name(db.session, name)
         if record is not None:
@@ -133,10 +144,12 @@ class EditProgrammeOutcomeSet(Resource):
             response = None
             error = HTTPException(description,response)
             error.code = BadRequest.code
-            return {
+            exception = {
                     "status": error.code,
                     "errors": [{"description": error.description}]
                     }
+            exception_in_json = jsonify(exception)
+            return exception_in_json
 
         po_set.name = name
         db.session.commit()
@@ -150,10 +163,12 @@ class DeleteProgrammeOutcomeSet(Resource):
             response = None
             error = HTTPException(description,response)
             error.code = BadRequest.code
-            return {
+            exception = {
                     "status": error.code,
                     "errors": [{"description": error.description}]
                     }
+            exception_in_json = jsonify(exception)
+            return exception_in_json
 
 
         if can_delete_programme_outcome_set(db.session, po_set) is False:
@@ -161,10 +176,12 @@ class DeleteProgrammeOutcomeSet(Resource):
             response = None
             error = HTTPException(description,response)
             error.code = BadRequest.code
-            return {
+            exception = {
                     "status": error.code,
                     "errors": [{"description": error.description}]
                     }
+            exception_in_json = jsonify(exception)
+            return exception_in_json
 
         for po in po_set.programme_outcomes:
             db.session.delete(po)
@@ -182,10 +199,12 @@ class GetProgrammeOutcome(Resource):
             response = None
             error = HTTPException(description,response)
             error.code = BadRequest.code
-            return {
+            exception = {
                     "status": error.code,
                     "errors": [{"description":error.description}]
                     }
+            exception_in_json = jsonify(exception)
+            return exception_in_json
 
 
         return {
@@ -207,10 +226,12 @@ class GetProgrammeOutcomes(Resource):
             response = None
             error = HTTPException(description,response)
             error.code = BadRequest.code
-            return {
+            exception = {
                     "status": error.code,
                     "errors": [{"description": error.description}]
                     }
+            exception_in_json = jsonify(exception)
+            return exception_in_json
 
         record = db.session.query(func.max(ProgrammeOutcome.number)).filter_by(po_set_id=po_set_id).first()
         max_po = record[0]
@@ -244,10 +265,12 @@ class AddProgrammeOutcome(Resource):
             response = None
             error = HTTPException(description,response)
             error.code = BadRequest.code
-            return {
+            exception = {
                     "status": error.code,
                     "errors": [{"description": error.description}]
                     }
+            exception_in_json = jsonify(exception)
+            return exception_in_json
 
         if can_add_programme_outcome(db.session, po_set) is False:
             description= '''Programme Outcome Set ({}) in use.
@@ -255,10 +278,12 @@ class AddProgrammeOutcome(Resource):
             response = None
             error = HTTPException(description,response)
             error.code = BadRequest.code
-            return {
+            exception = {
                     "status": error.code,
                     "errors": [{"description": error.description}]
                     }
+            exception_in_json = jsonify(exception)
+            return exception_in_json
 
         data={}
         data = request.json
@@ -270,10 +295,12 @@ class AddProgrammeOutcome(Resource):
             response = None
             error = HTTPException(description,response)
             error.code = BadRequest.code
-            return {
+            exception = {
                     "status": error.code,
                     "errors": [{"description": error.description}]
                     }
+            exception_in_json = jsonify(exception)
+            return exception_in_json
 
         record = db.session.query(func.max(ProgrammeOutcome.number)).filter_by(po_set_id=po_set_id).first()
         if record[0] is not None:
@@ -286,10 +313,12 @@ class AddProgrammeOutcome(Resource):
             response = None
             error = HTTPException(description,response)
             error.code = BadRequest.code
-            return {
+            exception = {
                     "status": error.code,
                     "errors": [{"description": error.description}]
                     }
+            exception_in_json = jsonify(exception)
+            return exception_in_json
 
         po = ProgrammeOutcome()
         po.number = number
@@ -309,10 +338,12 @@ class EditProgrammeOutcome(Resource):
             response = None
             error = HTTPException(description,response)
             error.code = BadRequest.code
-            return {
+            exception = {
                     "status": error.code,
                     "errors": [{"description": error.description}]
                     }
+            exception_in_json = jsonify(exception)
+            return exception_in_json
 
         data={}
         data = request.json
@@ -330,10 +361,12 @@ class DeleteProgrammeOutcome(Resource):
             response = None
             error = HTTPException(description,response)
             error.code = BadRequest.code
-            return {
+            exception = {
                     "status": error.code,
                     "errors": [{"description": error.description}]
                     }
+            exception_in_json = jsonify(exception)
+            return exception_in_json
 
         record = db.session.query(func.max(ProgrammeOutcome.number)).filter_by(po_set_id=po.po_set_id).first()
         max_po = record[0]
@@ -343,20 +376,24 @@ class DeleteProgrammeOutcome(Resource):
             response = None
             error = HTTPException(description,response)
             error.code = BadRequest.code
-            return {
+            exception = {
                     "status": error.code,
                     "errors": [{"description": error.description}]
                     }
+            exception_in_json = jsonify(exception)
+            return exception_in_json
 
         if can_delete_programme_outcome(db.session, po) is False:
             description = "Programme Outcome ({}) in use".format(po_id)
             response = None
             error = HTTPException(description,response)
             error.code = BadRequest.code
-            return {
+            exception = {
                     "status": error.code,
                     "errors": [{"description": error.description}]
                     }
+            exception_in_json = jsonify(exception)
+            return exception_in_json
         db.session.delete(po)
         db.session.commit()
 #curl example -> curl http://localhost:5000/ui/programme_outcome_manager/programme_outcome/3 -X DELETE
