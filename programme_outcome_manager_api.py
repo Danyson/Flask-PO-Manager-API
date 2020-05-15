@@ -163,7 +163,7 @@ class DeleteProgrammeOutcomeSet(Resource):
             error.code = BadRequest.code
             return {
                     "status": error.code,
-                    "errors": [{    "description": error.description}]
+                    "errors": [{"description": error.description}]
                     }
 
         for po in po_set.programme_outcomes:
