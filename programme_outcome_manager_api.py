@@ -43,7 +43,6 @@ class GetProgrammeOutcomeSetByName(Resource):
             response = None
             error = HTTPException(description,response)
             error.code = BadRequest.code
-            print(error)
             exception = {
                     "status": error.code,
                     "errors": [{"description": error.description}]
