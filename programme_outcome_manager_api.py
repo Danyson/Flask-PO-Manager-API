@@ -195,8 +195,7 @@ class GetProgrammeOutcome(Resource):
 class GetProgrammeOutcomes(Resource):
     def get(self,po_set_id):
         po_set = ProgrammeOutcomeSet.by_id(db.session, po_set_id)
-        if po_set is curl -X GET http://localhost:5000/ui/programme_outcome_manager/programme_outcome/1
-None:
+        if po_set is None:
             description = "Programme Outcome Set ({}) does not exist".format(po_set_id)
             response = None
             error = HTTPException(description,response)
