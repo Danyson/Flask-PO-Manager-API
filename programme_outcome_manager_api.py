@@ -11,6 +11,7 @@ from utils import (
     can_add_programme_outcome,
     can_delete_programme_outcome_set,
     can_delete_programme_outcome,
+    custom_exception,
 )
 
 app = Flask(__name__)
@@ -42,10 +43,7 @@ class GetProgrammeOutcomeSetByName(Resource):
             response = None
             error = HTTPException(description,response)
             error.code = BadRequest.code
-            exception = {
-                    "status": error.code,
-                    "errors": [{"description": error.description}]
-                    }
+            exception = custom_exception(error.code,error.description)
             exception_in_json = jsonify(exception)
             return exception_in_json
 
@@ -66,10 +64,7 @@ class GetProgrammeOutcomeSetById(Resource):
             response = None
             error = HTTPException(description,response)
             error.code = BadRequest.code
-            exception = {
-                    "status": error.code,
-                    "errors": [{"description": error.description}]
-                    }
+            exception = custom_exception(error.code,error.description)
             exception_in_json = jsonify(exception)
             return exception_in_json
 
@@ -94,10 +89,7 @@ class AddProgrammeOutcomeSet(Resource):
             response = None
             error = HTTPException(description,response)
             error.code = BadRequest.code
-            exception = {
-                    "status": error.code,
-                    "errors": [{"description": error.description}]
-                    }
+            exception = custom_exception(error.code,error.description)
             exception_in_json = jsonify(exception)
             return exception_in_json
         po_set = ProgrammeOutcomeSet()
@@ -115,10 +107,7 @@ class EditProgrammeOutcomeSet(Resource):
             response = None
             error = HTTPException(description,response)
             error.code = BadRequest.code
-            exception = {
-                    "status": error.code,
-                    "errors": [{"description": error.description}]
-                    }
+            exception = custom_exception(error.code,error.description)
             exception_in_json = jsonify(exception)
             return exception_in_json
 
@@ -129,10 +118,7 @@ class EditProgrammeOutcomeSet(Resource):
             response = None
             error = HTTPException(description,response)
             error.code = BadRequest.code
-            exception = {
-                    "status": error.code,
-                    "errors": [{"description": error.description}]
-                    }
+            exception = custom_exception(error.code,error.description)
             exception_in_json = jsonify(exception)
             return exception_in_json
 
@@ -142,10 +128,7 @@ class EditProgrammeOutcomeSet(Resource):
             response = None
             error = HTTPException(description,response)
             error.code = BadRequest.code
-            exception = {
-                    "status": error.code,
-                    "errors": [{"description": error.description}]
-                    }
+            exception = custom_exception(error.code,error.description)
             exception_in_json = jsonify(exception)
             return exception_in_json
 
@@ -161,10 +144,7 @@ class DeleteProgrammeOutcomeSet(Resource):
             response = None
             error = HTTPException(description,response)
             error.code = BadRequest.code
-            exception = {
-                    "status": error.code,
-                    "errors": [{"description": error.description}]
-                    }
+            exception = custom_exception(error.code,error.description)
             exception_in_json = jsonify(exception)
             return exception_in_json
 
@@ -174,10 +154,7 @@ class DeleteProgrammeOutcomeSet(Resource):
             response = None
             error = HTTPException(description,response)
             error.code = BadRequest.code
-            exception = {
-                    "status": error.code,
-                    "errors": [{"description": error.description}]
-                    }
+            exception = custom_exception(error.code,error.description)
             exception_in_json = jsonify(exception)
             return exception_in_json
 
@@ -197,10 +174,7 @@ class GetProgrammeOutcome(Resource):
             response = None
             error = HTTPException(description,response)
             error.code = BadRequest.code
-            exception = {
-                    "status": error.code,
-                    "errors": [{"description":error.description}]
-                    }
+            exception = custom_exception(error.code,error.description)
             exception_in_json = jsonify(exception)
             return exception_in_json
 
@@ -215,6 +189,8 @@ class GetProgrammeOutcome(Resource):
                              'po_set_id': po.po_set_id,
                             }
                }
+#curl example -> curl -X GET http://localhost:5000/ui/programme_outcome_manager/programme_outcome/1
+
 
 class GetProgrammeOutcomes(Resource):
     def get(self,po_set_id):
@@ -224,10 +200,7 @@ class GetProgrammeOutcomes(Resource):
             response = None
             error = HTTPException(description,response)
             error.code = BadRequest.code
-            exception = {
-                    "status": error.code,
-                    "errors": [{"description": error.description}]
-                    }
+            exception = custom_exception(error.code,error.description)
             exception_in_json = jsonify(exception)
             return exception_in_json
 
@@ -254,6 +227,7 @@ class GetProgrammeOutcomes(Resource):
                  'type': 'programme_outcome_list',
                  'result': result,
                }
+# curl example -> curl -X GET http://localhost:5000/ui/programme_outcome_manager/1/programme_outcomes
 
 class AddProgrammeOutcome(Resource):
     def post(self,po_set_id):
@@ -263,10 +237,7 @@ class AddProgrammeOutcome(Resource):
             response = None
             error = HTTPException(description,response)
             error.code = BadRequest.code
-            exception = {
-                    "status": error.code,
-                    "errors": [{"description": error.description}]
-                    }
+            exception = custom_exception(error.code,error.description)
             exception_in_json = jsonify(exception)
             return exception_in_json
 
@@ -276,10 +247,7 @@ class AddProgrammeOutcome(Resource):
             response = None
             error = HTTPException(description,response)
             error.code = BadRequest.code
-            exception = {
-                    "status": error.code,
-                    "errors": [{"description": error.description}]
-                    }
+            exception = custom_exception(error.code,error.description)
             exception_in_json = jsonify(exception)
             return exception_in_json
 
@@ -293,10 +261,7 @@ class AddProgrammeOutcome(Resource):
             response = None
             error = HTTPException(description,response)
             error.code = BadRequest.code
-            exception = {
-                    "status": error.code,
-                    "errors": [{"description": error.description}]
-                    }
+            exception = custom_exception(error.code,error.description)
             exception_in_json = jsonify(exception)
             return exception_in_json
 
@@ -311,10 +276,7 @@ class AddProgrammeOutcome(Resource):
             response = None
             error = HTTPException(description,response)
             error.code = BadRequest.code
-            exception = {
-                    "status": error.code,
-                    "errors": [{"description": error.description}]
-                    }
+            exception = custom_exception(error.code,error.description)
             exception_in_json = jsonify(exception)
             return exception_in_json
 
@@ -336,10 +298,7 @@ class EditProgrammeOutcome(Resource):
             response = None
             error = HTTPException(description,response)
             error.code = BadRequest.code
-            exception = {
-                    "status": error.code,
-                    "errors": [{"description": error.description}]
-                    }
+            exception = custom_exception(error.code,error.description)
             exception_in_json = jsonify(exception)
             return exception_in_json
 
@@ -359,10 +318,7 @@ class DeleteProgrammeOutcome(Resource):
             response = None
             error = HTTPException(description,response)
             error.code = BadRequest.code
-            exception = {
-                    "status": error.code,
-                    "errors": [{"description": error.description}]
-                    }
+            exception = custom_exception(error.code,error.description)
             exception_in_json = jsonify(exception)
             return exception_in_json
 
@@ -374,10 +330,7 @@ class DeleteProgrammeOutcome(Resource):
             response = None
             error = HTTPException(description,response)
             error.code = BadRequest.code
-            exception = {
-                    "status": error.code,
-                    "errors": [{"description": error.description}]
-                    }
+            exception = custom_exception(error.code,error.description)
             exception_in_json = jsonify(exception)
             return exception_in_json
 
@@ -386,10 +339,7 @@ class DeleteProgrammeOutcome(Resource):
             response = None
             error = HTTPException(description,response)
             error.code = BadRequest.code
-            exception = {
-                    "status": error.code,
-                    "errors": [{"description": error.description}]
-                    }
+            exception = custom_exception(error.code,error.description)
             exception_in_json = jsonify(exception)
             return exception_in_json
         db.session.delete(po)

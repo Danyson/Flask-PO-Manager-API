@@ -17,6 +17,11 @@ def programme_outcome_set_to_dict(po_set):
         'name': po_set.name,
     }
 
+def custom_exception(code,description):
+    return {
+            "status": code,
+            "errors": [{"description": description}]
+            }
 
 def can_delete_programme_outcome_set(dbsession, po_set):
     return True
