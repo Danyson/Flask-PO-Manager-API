@@ -83,7 +83,7 @@ class AddProgrammeOutcomeSet(Resource):
         data={}
         data= request.json
         name = data['name']
-        po_set = ProgrammeOutcomeSet.by_name(name)
+        po_set = ProgrammeOutcomeSet.by_name(db.session,name) #PO set is queried by name for the purpose of name uniquness check
         if po_set is not None:
             description = "Name already in use"
             response = None
@@ -92,16 +92,16 @@ class AddProgrammeOutcomeSet(Resource):
             exception = custom_exception(error.code,error.description)
             exception_in_json = jsonify(exception)
             return exception_in_json
-        po_set = ProgrammeOutcomeSet()
-        po_set.name = name
-        db.session.add(po_set)
-        db.session.commit()
+        po_set = ProgrammeOutcomeSet()            #fresh instance of PO set database object is created
+        po_set.name = name                        #name data assigned to the instance name variable
+        db.session.add(po_set)                    #instance data added to the database
+        db.session.commit()                       #new data commited and transaction complete
 #curl cmd example->curl -d '{"name":"h"}' -H "Content-Type: application/json" -X POST http://localhost:5000/ui/programme_outcome_manager/programme_outcome_sets
 
 class EditProgrammeOutcomeSet(Resource):
     def put(self,po_set_id):
         data= request.json
-        po_set = ProgrammeOutcomeSet.by_id(db.session, po_set_id)
+        po_set = ProgrammeOutcomeSet.by_id(db.session, po_set_id)                  #PO set database instance is acquired  which is queried as per PO set id to check whether if it exsists or not , to check name is repeated and whether it is already in use
         if po_set is None:
             description = "Programme Outcome set ({}) not found".format(po_set_id)
             response = None
@@ -132,8 +132,8 @@ class EditProgrammeOutcomeSet(Resource):
             exception_in_json = jsonify(exception)
             return exception_in_json
 
-        po_set.name = name
-        db.session.commit()
+        po_set.name = name        #name data assigned to the current PO set database instance's name variable
+        db.session.commit()       #changes have been commited and transaction is complete
 #curl example -> curl -d '{"name":"h"}' -H "Content-Type: application/json"  http://localhost:5000/ui/programme_outcome_manager/programme_outcome_set/5 -X PUT
 
 class DeleteProgrammeOutcomeSet(Resource):
@@ -287,7 +287,7 @@ class AddProgrammeOutcome(Resource):
         po.po_set_id = po_set_id
         db.session.add(po)
         db.session.commit()
-#curl example -> curl -d '{"number":"3","title":"addnew","description":"testing"}' -H "Content-Type: application/json"  http://localhost:5000//ui/programme_outcome_manager/1/programme_outcomes -X POST
+#curl example -> curl -d '{"number":3,"title":"addnew","description":"testing"}' -H "Content-Type: application/json"  http://localhost:5000//ui/programme_outcome_manager/1/programme_outcomes -X POST
 
 class EditProgrammeOutcome(Resource):
     def put(self,po_id):
