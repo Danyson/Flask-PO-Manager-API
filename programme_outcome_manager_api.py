@@ -17,18 +17,21 @@ from utils import (
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///UECRUD.db'
 db = SQLAlchemy(app, metadata=metadata)
+session = db.session
 api = Api(app)
 
 #*********************Programme Outcome Sets Api Starts**************
 class GetProgrammeOutcomeSets(Resource):
     def get(self):
         result = []
-        po_sets = db.session.query(ProgrammeOutcomeSet)
+        session_local = session()
+        po_sets = session_local.query(ProgrammeOutcomeSet)
         for po_set in po_sets:
             di = programme_outcome_set_to_dict(po_set)
             di['po_count'] = po_set.programme_outcomes.count()
-            di['can_delete'] = can_delete_programme_outcome_set(db.session, po_set)
+            di['can_delete'] = can_delete_programme_outcome_set(session_local, po_set)
             result.append(di)
+        session_local.close()
         return {
                 'type': 'programme_outcome_set_list',
                 'result': result
@@ -37,7 +40,8 @@ class GetProgrammeOutcomeSets(Resource):
 
 class GetProgrammeOutcomeSetByName(Resource):
     def get(self,name):
-        po_set = ProgrammeOutcomeSet.by_name(db.session, name.strip())
+        session_local = session()
+        po_set = ProgrammeOutcomeSet.by_name(session_local, name.strip())
         if po_set is None:
             description = "Programme outcome set ({}) not found".format(name)
             response = None
@@ -58,7 +62,8 @@ class GetProgrammeOutcomeSetByName(Resource):
 
 class GetProgrammeOutcomeSetById(Resource):
     def get(self,po_set_id):
-        po_set = ProgrammeOutcomeSet.by_id(db.session, po_set_id)
+        session_local = session()
+        po_set = ProgrammeOutcomeSet.by_id(session_local, po_set_id)
         if po_set is None:
             description = "Programme outcome set ({}) not found".format(po_set_id)
             response = None
@@ -80,10 +85,11 @@ class GetProgrammeOutcomeSetById(Resource):
 
 class AddProgrammeOutcomeSet(Resource):
     def post(self):
+        session_local = session()
         data={}
         data= request.json
         name = data['name']
-        po_set = ProgrammeOutcomeSet.by_name(db.session,name) #PO set is queried by name for the purpose of name uniquness check
+        po_set = ProgrammeOutcomeSet.by_name(session_local,name) #PO set is queried by name for the purpose of name uniquness check
         if po_set is not None:
             description = "Name already in use"
             response = None
@@ -94,14 +100,20 @@ class AddProgrammeOutcomeSet(Resource):
             return exception_in_json
         po_set = ProgrammeOutcomeSet()            #fresh instance of PO set database object is created
         po_set.name = name                        #name data assigned to the instance name variable
-        db.session.add(po_set)                    #instance data added to the database
-        db.session.commit()                       #new data commited and transaction complete
+        session_local.add(po_set)                    #instance data added to the database
+        try:
+            session_local.commit()
+        except:
+            session_local.rollback()
+        finally:
+            session_local.close()                     #new data commited and transaction complete
 #curl cmd example->curl -d '{"name":"h"}' -H "Content-Type: application/json" -X POST http://localhost:5000/ui/programme_outcome_manager/programme_outcome_sets
 
 class EditProgrammeOutcomeSet(Resource):
     def put(self,po_set_id):
+        session_local = session()
         data= request.json
-        po_set = ProgrammeOutcomeSet.by_id(db.session, po_set_id)                  #PO set database instance is acquired  which is queried as per PO set id to check whether if it exsists or not , to check name is repeated and whether it is already in use
+        po_set = ProgrammeOutcomeSet.by_id(session_local, po_set_id)
         if po_set is None:
             description = "Programme Outcome set ({}) not found".format(po_set_id)
             response = None
@@ -122,7 +134,7 @@ class EditProgrammeOutcomeSet(Resource):
             exception_in_json = jsonify(exception)
             return exception_in_json
 
-        record = ProgrammeOutcomeSet.by_name(db.session, name)
+        record = ProgrammeOutcomeSet.by_name(session_local, name)
         if record is not None:
             description = "Name ({}) already in use".format(name)
             response = None
@@ -133,12 +145,14 @@ class EditProgrammeOutcomeSet(Resource):
             return exception_in_json
 
         po_set.name = name        #name data assigned to the current PO set database instance's name variable
-        db.session.commit()       #changes have been commited and transaction is complete
+        session_local.commit()       #changes have been commited and transaction is complete
+        session_local.close()
 #curl example -> curl -d '{"name":"h"}' -H "Content-Type: application/json"  http://localhost:5000/ui/programme_outcome_manager/programme_outcome_set/5 -X PUT
 
 class DeleteProgrammeOutcomeSet(Resource):
     def delete(self,po_set_id):
-        po_set = ProgrammeOutcomeSet.by_id(db.session, po_set_id)
+        session_local = session()
+        po_set = ProgrammeOutcomeSet.by_id(session_local, po_set_id)
         if po_set is None:
             description = "Programme Outcome set ({}) not found".format(po_set_id)
             response = None
@@ -149,7 +163,7 @@ class DeleteProgrammeOutcomeSet(Resource):
             return exception_in_json
 
 
-        if can_delete_programme_outcome_set(db.session, po_set) is False:
+        if can_delete_programme_outcome_set(session_local, po_set) is False:
             description = "Programme Outcome set ({}) in use".format(po_set_id)
             response = None
             error = HTTPException(description,response)
@@ -159,16 +173,18 @@ class DeleteProgrammeOutcomeSet(Resource):
             return exception_in_json
 
         for po in po_set.programme_outcomes:
-            db.session.delete(po)
-        db.session.delete(po_set)
-        db.session.commit()
+            session_local.delete(po)
+        session_local.delete(po_set)
+        session_local.commit()
+        session_local.close()
 #curl example -> curl http://localhost:5000/ui/programme_outcome_manager/programme_outcome_set/8  -X DELETE
 #*********************Programme Outcome Sets Api Ends***************************
 
 #************************Programme Outcome Api starts***************************
 class GetProgrammeOutcome(Resource):
     def get(self,po_id):
-        po = ProgrammeOutcome.by_id(db.session, po_id)
+        session_local = session()
+        po = ProgrammeOutcome.by_id(session_local, po_id)
         if po is None:
             description = "Programme Outcome ({}) does not exist".format(po_id)
             response = None
@@ -194,7 +210,8 @@ class GetProgrammeOutcome(Resource):
 
 class GetProgrammeOutcomes(Resource):
     def get(self,po_set_id):
-        po_set = ProgrammeOutcomeSet.by_id(db.session, po_set_id)
+        session_local = session()
+        po_set = ProgrammeOutcomeSet.by_id(session_local, po_set_id)
         if po_set is None:
             description = "Programme Outcome Set ({}) does not exist".format(po_set_id)
             response = None
@@ -204,7 +221,7 @@ class GetProgrammeOutcomes(Resource):
             exception_in_json = jsonify(exception)
             return exception_in_json
 
-        record = db.session.query(func.max(ProgrammeOutcome.number)).filter_by(po_set_id=po_set_id).first()
+        record = session_local.query(func.max(ProgrammeOutcome.number)).filter_by(po_set_id=po_set_id).first()
         max_po = record[0]
 
         li = []
@@ -213,12 +230,12 @@ class GetProgrammeOutcomes(Resource):
             if po.number < max_po:
                 di['can_delete'] = False
             else:
-                di['can_delete'] = can_delete_programme_outcome(db.session, po)
+                di['can_delete'] = can_delete_programme_outcome(session_local, po)
             li.append(di)
 
         result = {
                      'programme_outcomes': li,
-                     'can_add': can_add_programme_outcome(db.session, po_set),
+                     'can_add': can_add_programme_outcome(session_local, po_set),
                      'title': po_set.name,
 
                  }
@@ -231,7 +248,8 @@ class GetProgrammeOutcomes(Resource):
 
 class AddProgrammeOutcome(Resource):
     def post(self,po_set_id):
-        po_set = ProgrammeOutcomeSet.by_id(db.session, po_set_id)
+        session_local = session()
+        po_set = ProgrammeOutcomeSet.by_id(session_local, po_set_id)
         if po_set is None:
             description = "Programme Outcome Set ({}) does not exist".format(po_set_id)
             response = None
@@ -241,7 +259,7 @@ class AddProgrammeOutcome(Resource):
             exception_in_json = jsonify(exception)
             return exception_in_json
 
-        if can_add_programme_outcome(db.session, po_set) is False:
+        if can_add_programme_outcome(session_local, po_set) is False:
             description= '''Programme Outcome Set ({}) in use.
                             Can't add programme outcome'''
             response = None
@@ -254,7 +272,7 @@ class AddProgrammeOutcome(Resource):
         data={}
         data = request.json
         number = data['number']
-        record = db.session.query(ProgrammeOutcome.id).filter_by(po_set_id=po_set_id, number=number).first()
+        record = session_local.query(ProgrammeOutcome.id).filter_by(po_set_id=po_set_id, number=number).first()
 
         if record is not None:
             description = 'Programme Outcome with number ({}) already exists'
@@ -265,7 +283,7 @@ class AddProgrammeOutcome(Resource):
             exception_in_json = jsonify(exception)
             return exception_in_json
 
-        record = db.session.query(func.max(ProgrammeOutcome.number)).filter_by(po_set_id=po_set_id).first()
+        record = session_local.query(func.max(ProgrammeOutcome.number)).filter_by(po_set_id=po_set_id).first()
         if record[0] is not None:
             max_po = record[0]
         else:
@@ -285,13 +303,15 @@ class AddProgrammeOutcome(Resource):
         po.title = data['title']
         po.description = data['description']
         po.po_set_id = po_set_id
-        db.session.add(po)
-        db.session.commit()
+        session_local.add(po)
+        session_local.commit()
+        session_local.close()
 #curl example -> curl -d '{"number":3,"title":"addnew","description":"testing"}' -H "Content-Type: application/json"  http://localhost:5000//ui/programme_outcome_manager/1/programme_outcomes -X POST
 
 class EditProgrammeOutcome(Resource):
     def put(self,po_id):
-        po = ProgrammeOutcome.by_id(db.session, po_id)
+        session_local = session()
+        po = ProgrammeOutcome.by_id(session_local, po_id)
 
         if po is None:
             description = 'Programme Outcome ({}) does not exist'.format(po_id)
@@ -306,12 +326,14 @@ class EditProgrammeOutcome(Resource):
         data = request.json
         po.title = data['title']
         po.description = data['description']
-        db.session.commit()
+        session_local.commit()
+        session_local.close()
 #curl example -> curl -d '{"title":"add","description":"testing complete"}' -H "Content-Type: application/json"  http://localhost:5000/ui/programme_outcome_manager/programme_outcome/1 -X PUT
 
 class DeleteProgrammeOutcome(Resource):
     def delete(self,po_id):
-        po = ProgrammeOutcome.by_id(db.session, po_id)
+        session_local = session()
+        po = ProgrammeOutcome.by_id(session_local, po_id)
 
         if po is None:
             description = 'Programme Outcome ({}) does not exist'.format(po_id)
@@ -322,7 +344,7 @@ class DeleteProgrammeOutcome(Resource):
             exception_in_json = jsonify(exception)
             return exception_in_json
 
-        record = db.session.query(func.max(ProgrammeOutcome.number)).filter_by(po_set_id=po.po_set_id).first()
+        record = session_local.query(func.max(ProgrammeOutcome.number)).filter_by(po_set_id=po.po_set_id).first()
         max_po = record[0]
 
         if po.number != max_po:
@@ -334,7 +356,7 @@ class DeleteProgrammeOutcome(Resource):
             exception_in_json = jsonify(exception)
             return exception_in_json
 
-        if can_delete_programme_outcome(db.session, po) is False:
+        if can_delete_programme_outcome(session_local, po) is False:
             description = "Programme Outcome ({}) in use".format(po_id)
             response = None
             error = HTTPException(description,response)
@@ -342,8 +364,9 @@ class DeleteProgrammeOutcome(Resource):
             exception = custom_exception(error.code,error.description)
             exception_in_json = jsonify(exception)
             return exception_in_json
-        db.session.delete(po)
-        db.session.commit()
+        session_local.delete(po)
+        session_local.commit()
+        session_local.close()
 #curl example -> curl http://localhost:5000/ui/programme_outcome_manager/programme_outcome/3 -X DELETE
 #************************Programme Outcome Api ends*****************************
 
