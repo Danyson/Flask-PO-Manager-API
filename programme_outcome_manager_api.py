@@ -145,8 +145,12 @@ class EditProgrammeOutcomeSet(Resource):
             return exception_in_json
 
         po_set.name = name        #name data assigned to the current PO set database instance's name variable
-        session_local.commit()       #changes have been commited and transaction is complete
-        session_local.close()
+        try:
+            session_local.commit()       #changes have been commited and transaction is complete
+        except:
+            session_local.rollback()
+        finally:
+            session_local.close()
 #curl example -> curl -d '{"name":"h"}' -H "Content-Type: application/json"  http://localhost:5000/ui/programme_outcome_manager/programme_outcome_set/5 -X PUT
 
 class DeleteProgrammeOutcomeSet(Resource):
@@ -175,8 +179,12 @@ class DeleteProgrammeOutcomeSet(Resource):
         for po in po_set.programme_outcomes:
             session_local.delete(po)
         session_local.delete(po_set)
-        session_local.commit()
-        session_local.close()
+        try:
+            session_local.commit()
+        except:
+            session_local.rollback()
+        finally:
+            session_local.close()
 #curl example -> curl http://localhost:5000/ui/programme_outcome_manager/programme_outcome_set/8  -X DELETE
 #*********************Programme Outcome Sets Api Ends***************************
 
@@ -304,8 +312,12 @@ class AddProgrammeOutcome(Resource):
         po.description = data['description']
         po.po_set_id = po_set_id
         session_local.add(po)
-        session_local.commit()
-        session_local.close()
+        try:
+            session_local.commit()
+        except:
+            session_local.rollback()
+        finally:
+            session_local.close()
 #curl example -> curl -d '{"number":3,"title":"addnew","description":"testing"}' -H "Content-Type: application/json"  http://localhost:5000//ui/programme_outcome_manager/1/programme_outcomes -X POST
 
 class EditProgrammeOutcome(Resource):
@@ -326,8 +338,12 @@ class EditProgrammeOutcome(Resource):
         data = request.json
         po.title = data['title']
         po.description = data['description']
-        session_local.commit()
-        session_local.close()
+        try:
+            session_local.commit()
+        except:
+            session_local.rollback()
+        finally:
+            session_local.close()
 #curl example -> curl -d '{"title":"add","description":"testing complete"}' -H "Content-Type: application/json"  http://localhost:5000/ui/programme_outcome_manager/programme_outcome/1 -X PUT
 
 class DeleteProgrammeOutcome(Resource):
@@ -365,8 +381,12 @@ class DeleteProgrammeOutcome(Resource):
             exception_in_json = jsonify(exception)
             return exception_in_json
         session_local.delete(po)
-        session_local.commit()
-        session_local.close()
+        try:
+            session_local.commit()
+        except:
+            session_local.rollback()
+        finally:
+            session_local.close()
 #curl example -> curl http://localhost:5000/ui/programme_outcome_manager/programme_outcome/3 -X DELETE
 #************************Programme Outcome Api ends*****************************
 
