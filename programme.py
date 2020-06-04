@@ -2,7 +2,7 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from meta import metadata
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///UECRUD.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///UECRUD'
 db = SQLAlchemy(app, metadata=metadata)
 
 

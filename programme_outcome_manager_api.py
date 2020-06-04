@@ -1,9 +1,9 @@
 from flask import Flask, request, jsonify
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import func
+#from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import func, create_engine
+from sqlalchemy.orm import sessionmaker
 from flask_restful import Resource, Api
 from werkzeug.exceptions import BadRequest, HTTPException
-from meta import metadata
 from programme import ProgrammeOutcomeSet, ProgrammeOutcome
 from utils import (
     programme_outcome_set_to_dict,
@@ -13,11 +13,14 @@ from utils import (
     can_delete_programme_outcome,
     custom_exception,
 )
+import os
+
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///UECRUD.db'
-db = SQLAlchemy(app, metadata=metadata)
-session = db.session
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///UECRUD'
+#db = SQLAlchemy(app, metadata=metadata)
+db_engine = create_engine('postgresql:///UECRUD', pool_size = 20, max_overflow = -1)
+session = sessionmaker(bind=db_engine)
 api = Api(app)
 
 #*********************Programme Outcome Sets Api Starts**************
@@ -26,6 +29,7 @@ class GetProgrammeOutcomeSets(Resource):
         result = []
         session_local = session()
         po_sets = session_local.query(ProgrammeOutcomeSet)
+        session_local.commit()
         for po_set in po_sets:
             di = programme_outcome_set_to_dict(po_set)
             di['po_count'] = po_set.programme_outcomes.count()
@@ -102,11 +106,12 @@ class AddProgrammeOutcomeSet(Resource):
         po_set.name = name                        #name data assigned to the instance name variable
         session_local.add(po_set)                    #instance data added to the database
         try:
-            session_local.commit()
+            session_local.commit()                            #new data commited and transaction complete
         except:
             session_local.rollback()
+            raise
         finally:
-            session_local.close()                     #new data commited and transaction complete
+            session_local.close()
 #curl cmd example->curl -d '{"name":"h"}' -H "Content-Type: application/json" -X POST http://localhost:5000/ui/programme_outcome_manager/programme_outcome_sets
 
 class EditProgrammeOutcomeSet(Resource):
