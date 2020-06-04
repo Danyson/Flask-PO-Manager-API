@@ -19,12 +19,4 @@ python3 -m venv venv
 
 # Python Packages
 
- pip install Flask
-
- pip install flask-restful
-
- pip install Flask-SQLAlchemy
-
- pip install SQLAlchemy
-
- pip install Werkzeug
+ Refer requirements.txt file 
