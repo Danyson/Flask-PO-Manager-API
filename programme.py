@@ -2,7 +2,10 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from meta import metadata
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///UECRUD'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'insert db uri'
+
+#"postgresql://postgres:postgres@localhost:5432/cars_api"
+
 db = SQLAlchemy(app, metadata=metadata)
 
 

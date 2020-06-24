@@ -1,5 +1,6 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, json
 #from flask_sqlalchemy import SQLAlchemy
+from flask_cors import CORS
 from sqlalchemy import func, create_engine
 from sqlalchemy.orm import sessionmaker
 from flask_restful import Resource, Api
@@ -16,12 +17,16 @@ from utils import (
 import os
 
 
+
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///UECRUD'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'insert db uri'
 #db = SQLAlchemy(app, metadata=metadata)
-db_engine = create_engine('postgresql:///UECRUD', pool_size = 20, max_overflow = -1)
+db_engine = create_engine('insert db uri', pool_size = 20, max_overflow = -1)
 session = sessionmaker(bind=db_engine)
 api = Api(app)
+CORS(app)
+
+
 
 #*********************Programme Outcome Sets Api Starts**************
 class GetProgrammeOutcomeSets(Resource):
@@ -48,12 +53,10 @@ class GetProgrammeOutcomeSetByName(Resource):
         po_set = ProgrammeOutcomeSet.by_name(session_local, name.strip())
         if po_set is None:
             description = "Programme outcome set ({}) not found".format(name)
-            response = None
-            error = HTTPException(description,response)
-            error.code = BadRequest.code
-            exception = custom_exception(error.code,error.description)
-            exception_in_json = jsonify(exception)
-            return exception_in_json
+            response = app.response_class(response=json.dumps(description),
+                                  status=BadRequest.code,
+                                  mimetype='application/json')
+            return response
 
         return {
                  'type': 'programme_outcome_set',
@@ -70,12 +73,10 @@ class GetProgrammeOutcomeSetById(Resource):
         po_set = ProgrammeOutcomeSet.by_id(session_local, po_set_id)
         if po_set is None:
             description = "Programme outcome set ({}) not found".format(po_set_id)
-            response = None
-            error = HTTPException(description,response)
-            error.code = BadRequest.code
-            exception = custom_exception(error.code,error.description)
-            exception_in_json = jsonify(exception)
-            return exception_in_json
+            response = app.response_class(response=json.dumps(description),
+                                  status=BadRequest.code,
+                                  mimetype='application/json')
+            return response
 
         return {
                 'type': 'programme_outcome_set',
@@ -96,12 +97,11 @@ class AddProgrammeOutcomeSet(Resource):
         po_set = ProgrammeOutcomeSet.by_name(session_local,name) #PO set is queried by name for the purpose of name uniquness check
         if po_set is not None:
             description = "Name already in use"
-            response = None
-            error = HTTPException(description,response)
-            error.code = BadRequest.code
-            exception = custom_exception(error.code,error.description)
-            exception_in_json = jsonify(exception)
-            return exception_in_json
+            response = app.response_class(response=json.dumps(description),
+                                  status=BadRequest.code,
+                                  mimetype='application/json')
+            return response
+
         po_set = ProgrammeOutcomeSet()            #fresh instance of PO set database object is created
         po_set.name = name                        #name data assigned to the instance name variable
         session_local.add(po_set)                    #instance data added to the database
@@ -121,33 +121,28 @@ class EditProgrammeOutcomeSet(Resource):
         po_set = ProgrammeOutcomeSet.by_id(session_local, po_set_id)
         if po_set is None:
             description = "Programme Outcome set ({}) not found".format(po_set_id)
-            response = None
-            error = HTTPException(description,response)
-            error.code = BadRequest.code
-            exception = custom_exception(error.code,error.description)
-            exception_in_json = jsonify(exception)
-            return exception_in_json
+            response = app.response_class(response=json.dumps(description),
+                                  status=BadRequest.code,
+                                  mimetype='application/json')
+            return response
+
 
 
         name = data['name']
         if name == po_set.name:
             description = "Programme Outcome set ({}) already has name ({})"
-            response = None
-            error = HTTPException(description,response)
-            error.code = BadRequest.code
-            exception = custom_exception(error.code,error.description)
-            exception_in_json = jsonify(exception)
-            return exception_in_json
+            response = app.response_class(response=json.dumps(description),
+                                  status=BadRequest.code,
+                                  mimetype='application/json')
+            return response
 
         record = ProgrammeOutcomeSet.by_name(session_local, name)
         if record is not None:
             description = "Name ({}) already in use".format(name)
-            response = None
-            error = HTTPException(description,response)
-            error.code = BadRequest.code
-            exception = custom_exception(error.code,error.description)
-            exception_in_json = jsonify(exception)
-            return exception_in_json
+            response = app.response_class(response=json.dumps(description),
+                                  status=BadRequest.code,
+                                  mimetype='application/json')
+            return response
 
         po_set.name = name        #name data assigned to the current PO set database instance's name variable
         try:
@@ -164,22 +159,20 @@ class DeleteProgrammeOutcomeSet(Resource):
         po_set = ProgrammeOutcomeSet.by_id(session_local, po_set_id)
         if po_set is None:
             description = "Programme Outcome set ({}) not found".format(po_set_id)
-            response = None
-            error = HTTPException(description,response)
-            error.code = BadRequest.code
-            exception = custom_exception(error.code,error.description)
-            exception_in_json = jsonify(exception)
-            return exception_in_json
+            response = app.response_class(response=json.dumps(description),
+                                  status=BadRequest.code,
+                                  mimetype='application/json')
+            return response
+
 
 
         if can_delete_programme_outcome_set(session_local, po_set) is False:
             description = "Programme Outcome set ({}) in use".format(po_set_id)
-            response = None
-            error = HTTPException(description,response)
-            error.code = BadRequest.code
-            exception = custom_exception(error.code,error.description)
-            exception_in_json = jsonify(exception)
-            return exception_in_json
+            response = app.response_class(response=json.dumps(description),
+                                  status=BadRequest.code,
+                                  mimetype='application/json')
+            return response
+
 
         for po in po_set.programme_outcomes:
             session_local.delete(po)
@@ -200,12 +193,10 @@ class GetProgrammeOutcome(Resource):
         po = ProgrammeOutcome.by_id(session_local, po_id)
         if po is None:
             description = "Programme Outcome ({}) does not exist".format(po_id)
-            response = None
-            error = HTTPException(description,response)
-            error.code = BadRequest.code
-            exception = custom_exception(error.code,error.description)
-            exception_in_json = jsonify(exception)
-            return exception_in_json
+            response = app.response_class(response=json.dumps(description),
+                                  status=BadRequest.code,
+                                  mimetype='application/json')
+            return response
 
 
         return {
@@ -227,12 +218,11 @@ class GetProgrammeOutcomes(Resource):
         po_set = ProgrammeOutcomeSet.by_id(session_local, po_set_id)
         if po_set is None:
             description = "Programme Outcome Set ({}) does not exist".format(po_set_id)
-            response = None
-            error = HTTPException(description,response)
-            error.code = BadRequest.code
-            exception = custom_exception(error.code,error.description)
-            exception_in_json = jsonify(exception)
-            return exception_in_json
+            response = app.response_class(response=json.dumps(description),
+                                  status=BadRequest.code,
+                                  mimetype='application/json')
+            return response
+
 
         record = session_local.query(func.max(ProgrammeOutcome.number)).filter_by(po_set_id=po_set_id).first()
         max_po = record[0]
@@ -265,22 +255,20 @@ class AddProgrammeOutcome(Resource):
         po_set = ProgrammeOutcomeSet.by_id(session_local, po_set_id)
         if po_set is None:
             description = "Programme Outcome Set ({}) does not exist".format(po_set_id)
-            response = None
-            error = HTTPException(description,response)
-            error.code = BadRequest.code
-            exception = custom_exception(error.code,error.description)
-            exception_in_json = jsonify(exception)
-            return exception_in_json
+            response = app.response_class(response=json.dumps(description),
+                                  status=BadRequest.code,
+                                  mimetype='application/json')
+            return response
+
 
         if can_add_programme_outcome(session_local, po_set) is False:
             description= '''Programme Outcome Set ({}) in use.
                             Can't add programme outcome'''
-            response = None
-            error = HTTPException(description,response)
-            error.code = BadRequest.code
-            exception = custom_exception(error.code,error.description)
-            exception_in_json = jsonify(exception)
-            return exception_in_json
+            response = app.response_class(response=json.dumps(description),
+                                  status=BadRequest.code,
+                                  mimetype='application/json')
+            return response
+
 
         data={}
         data = request.json
@@ -289,12 +277,11 @@ class AddProgrammeOutcome(Resource):
 
         if record is not None:
             description = 'Programme Outcome with number ({}) already exists'
-            response = None
-            error = HTTPException(description,response)
-            error.code = BadRequest.code
-            exception = custom_exception(error.code,error.description)
-            exception_in_json = jsonify(exception)
-            return exception_in_json
+            response = app.response_class(response=json.dumps(description),
+                                  status=BadRequest.code,
+                                  mimetype='application/json')
+            return response
+
 
         record = session_local.query(func.max(ProgrammeOutcome.number)).filter_by(po_set_id=po_set_id).first()
         if record[0] is not None:
@@ -304,12 +291,11 @@ class AddProgrammeOutcome(Resource):
 
         if number != max_po + 1:
             description = "Programme Outcome numbers must be consecutive"
-            response = None
-            error = HTTPException(description,response)
-            error.code = BadRequest.code
-            exception = custom_exception(error.code,error.description)
-            exception_in_json = jsonify(exception)
-            return exception_in_json
+            response = app.response_class(response=json.dumps(description),
+                                  status=BadRequest.code,
+                                  mimetype='application/json')
+            return response
+
 
         po = ProgrammeOutcome()
         po.number = number
@@ -332,12 +318,10 @@ class EditProgrammeOutcome(Resource):
 
         if po is None:
             description = 'Programme Outcome ({}) does not exist'.format(po_id)
-            response = None
-            error = HTTPException(description,response)
-            error.code = BadRequest.code
-            exception = custom_exception(error.code,error.description)
-            exception_in_json = jsonify(exception)
-            return exception_in_json
+            response = app.response_class(response=json.dumps(description),
+                                  status=BadRequest.code,
+                                  mimetype='application/json')
+            return response
 
         data={}
         data = request.json
@@ -358,33 +342,30 @@ class DeleteProgrammeOutcome(Resource):
 
         if po is None:
             description = 'Programme Outcome ({}) does not exist'.format(po_id)
-            response = None
-            error = HTTPException(description,response)
-            error.code = BadRequest.code
-            exception = custom_exception(error.code,error.description)
-            exception_in_json = jsonify(exception)
-            return exception_in_json
+            response = app.response_class(response=json.dumps(description),
+                                  status=BadRequest.code,
+                                  mimetype='application/json')
+            return response
 
         record = session_local.query(func.max(ProgrammeOutcome.number)).filter_by(po_set_id=po.po_set_id).first()
         max_po = record[0]
 
         if po.number != max_po:
             description = 'Only last Programme Outcome can be deleted'
-            response = None
-            error = HTTPException(description,response)
-            error.code = BadRequest.code
-            exception = custom_exception(error.code,error.description)
-            exception_in_json = jsonify(exception)
-            return exception_in_json
+            response = app.response_class(response=json.dumps(description),
+                                  status=BadRequest.code,
+                                  mimetype='application/json')
+            return response
+
 
         if can_delete_programme_outcome(session_local, po) is False:
+            #{"status": "error", "errors": [{"location": "path", "name": "id", "description": "Programme Outcome (25) in use"}]}
             description = "Programme Outcome ({}) in use".format(po_id)
-            response = None
-            error = HTTPException(description,response)
-            error.code = BadRequest.code
-            exception = custom_exception(error.code,error.description)
-            exception_in_json = jsonify(exception)
-            return exception_in_json
+            response = app.response_class(response=None,
+                                  status=BadRequest.code,
+                                  mimetype='application/json')
+            return response
+
         session_local.delete(po)
         try:
             session_local.commit()
@@ -398,7 +379,7 @@ class DeleteProgrammeOutcome(Resource):
 #uri of Programme Outcome Set starts here
 api.add_resource(GetProgrammeOutcomeSets,'/ui/programme_outcome_manager/programme_outcome_sets')
 api.add_resource(GetProgrammeOutcomeSetByName,'/ui/programme_outcome_manager/programme_outcome_set_name/<name>')
-api.add_resource(GetProgrammeOutcomeSetById,'/ui/programme_outcome_manager/programme_outcome_set_id/<po_set_id>')
+api.add_resource(GetProgrammeOutcomeSetById,'/ui/programme_outcome_manager/programme_outcome_set/<po_set_id>')
 api.add_resource(AddProgrammeOutcomeSet,'/ui/programme_outcome_manager/programme_outcome_sets')
 api.add_resource(EditProgrammeOutcomeSet,'/ui/programme_outcome_manager/programme_outcome_set/<po_set_id>')
 api.add_resource(DeleteProgrammeOutcomeSet,'/ui/programme_outcome_manager/programme_outcome_set/<po_set_id>')
@@ -411,6 +392,7 @@ api.add_resource(AddProgrammeOutcome,'/ui/programme_outcome_manager/<po_set_id>/
 api.add_resource(EditProgrammeOutcome,'/ui/programme_outcome_manager/programme_outcome/<po_id>')
 api.add_resource(DeleteProgrammeOutcome,'/ui/programme_outcome_manager/programme_outcome/<po_id>')
 #uri of Programme Outcome  ends here
+
 
 if __name__ == '__main__':
     app.run(debug = True)
